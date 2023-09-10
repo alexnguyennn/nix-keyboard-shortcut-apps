@@ -1,0 +1,10 @@
+#+title: Readme
+
+* Nix-Kmonad
+Nix flake set up to enable KMonad installation
+Set up instructions:
+1. a
+2. b
+3. c
+** Troubleshooting
+- [ ] document Installation may fail due to hiddriver
