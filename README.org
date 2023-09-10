@@ -2,9 +2,58 @@
 
 * Nix-Kmonad
 Nix flake set up to enable KMonad installation
-Set up instructions:
-1. a
-2. b
-3. c
+
+To consume on =nix-darwin= inside a flake:
+
+#+begin_src nix
+# using nix-darwin and nix flakes:
+
+# flake.nix
+{
+  description = "flake consuming nix-kmonad"
+
+  inputs = {
+      nix-kmonad.url = "github:alexnguyennn/nix-kmonad/ba0806891448fb6a651e88df26309fabcbd7579b";
+  }
+# ... other flake boilerplate
+      darwinConfigurations = {
+        # work macbook pro
+        "my-machine-name" = darwin.lib.darwinSystem {
+          modules = attrValues self.darwinModules ++ [
+            nix-kmonad.darwinModule
+            ./machines/my-machine-name/configuration.nix
+          ];
+          # ...
+         };
+      };
+}
+# ./machines/my-machine-name/configuration.nix
+{ pkgs, config, lib, ... }:
+{
+   # set flake properties
+   alexnguyennn.flake.kmonad = {
+    enable = true;
+    baseConfig = ''
+      (defcfg
+        input (iokit-name "Apple Internal Keyboard / Trackpad")
+        output (kext)
+        fallthrough true
+        allow-cmd false
+      )
+    '';
+    userConfig = ''
+    ;; insert your kmonad lisp code here
+               '';
+    };
+}
+#+end_src
+
+
 ** Troubleshooting
-- [ ] document Installation may fail due to hiddriver
+- First =nix-darwin rebuild= may fail on =activate= at ~/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager activate~
+  - May need to download the pkg manually (see package derivation at ~./pkgs/darwin~)
+  - There is a shim to allow kmonad to be used as a launchd service. It needs exec permissions (module should do this, but add permissions if issues running)
+** Credits
+This flake is a port of [[https://github.com/mtoohey31/nixexprs/blob/main/nix-darwin/modules/mtoohey/kmonad.nix][mtoohey's]] kmonad nix expressions (with some modifications to make it work on my m1 mac) - thank you for making your config public!
+** improvements
+- [ ] namespace packages with =${system}= / figure out how pkgs work per operating system
