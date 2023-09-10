@@ -11,8 +11,11 @@
     };
   };
 
-  outputs = { self, nixpkgs, ...}@inputs: {
+  outputs = { self, nixpkgs, ... }@inputs: {
     darwinModule = import ./modules/darwin/kmonad.nix;
-    overlays.default = _: prev: let pkgs = prev; in import ./pkgs inputs pkgs;
+    overlays.default = nixpkgs.lib.composeManyExtensions [
+      inputs.kmonad.overlays.default
+      (_: prev: let pkgs = prev; in import ./pkgs inputs pkgs)
+    ];
   };
 }
