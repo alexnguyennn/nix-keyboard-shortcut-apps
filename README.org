@@ -53,6 +53,19 @@ To consume on =nix-darwin= inside a flake:
 - First =nix-darwin rebuild= may fail on =activate= at ~/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager activate~
   - May need to download the pkg manually (see package derivation at ~./pkgs/darwin~)
   - There is a shim to allow kmonad to be used as a launchd service. It needs exec permissions (module should do this, but add permissions if issues running)
+*** No host part in the URL
+#+begin_src shell
+error: builder for '/nix/store/5plsh526ilg4p90f9px2p5ifkb2g8hg4-Karabiner-DriverKit-VirtualHIDDevice-2.1.0.pkg.drv' failed with exit code 1;
+       last 4 log lines:
+       >
+       > trying /nix/store/m8n242ilkci0qqlrval40vrb6dnzvlh1-source/nix/../c_src/mac/Karabiner-DriverKit-VirtualHIDDevice/dist/Karabiner-DriverKit-VirtualHIDDevice-2.1.0.pkg
+       > curl: (3) URL rejected: No host part in the URL
+       > error: cannot download Karabiner-DriverKit-VirtualHIDDevice-2.1.0.pkg from any mirror
+       For full logs, run 'nix log /nix/store/5plsh526ilg4p90f9px2p5ifkb2g8hg4-Karabiner-DriverKit-VirtualHIDDevice-2.1.0.pkg.drv'.
+error: 1 dependencies of derivation '/nix/store/j35qvq8f8daync7pxbbbnaap1p3m7vn8-Karabiner-DriverKit-VirtualHIDDevice-2.1.0.drv' failed to build
+error: 1 dependencies of derivation '/nix/store/g9x9g6nkmbqk7mihanlq340f6y9j9mls-darwin-system-23.11pre-git+darwin4.511177f.drv' failed to build
+#+end_src
+- need to fetch from direct url rather than relative derivation path; hardcode url component to avoid this
 ** Credits
 This flake is a port of [[https://github.com/mtoohey31/nixexprs/blob/main/nix-darwin/modules/mtoohey/kmonad.nix][mtoohey's]] kmonad nix expressions (with some modifications to make it work on my m1 mac) - thank you for making your config public!
 ** improvements
