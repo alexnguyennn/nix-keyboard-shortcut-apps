@@ -25,10 +25,11 @@ in { } // pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin {
       Karabiner-DriverKit-VirtualHIDDevice-src = inputs.kmonad
         + "/../c_src/mac/Karabiner-DriverKit-VirtualHIDDevice";
     };
-  kmonad-daemon-shim = callPackage ./darwin/kmonad-daemon-shim { };
+  karabiner-daemon-shim = callPackage ./darwin/karabiner-daemon-shim { };
 
   kanata = oldPkgs.kanata-with-cmd;
 
+  # NOTE: can't run this as part of launchd service for reasons and needs root permissions so keep as package
   kanata-tray = pkgs.stdenv.mkDerivation {
     pname = "kanata-tray";
     inherit version;

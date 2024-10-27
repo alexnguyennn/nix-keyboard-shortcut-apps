@@ -12,7 +12,7 @@
   };
 
   outputs = { self, nixpkgs, ... }@inputs: {
-    darwinModule = import ./modules/darwin/kmonad.nix;
+    darwinModule = import ./modules/darwin/kmonad-and-kanata.nix;
     overlays.default = nixpkgs.lib.composeManyExtensions [
       inputs.kmonad.overlays.default
       (_: prev: let pkgs = prev; in import ./pkgs inputs pkgs)

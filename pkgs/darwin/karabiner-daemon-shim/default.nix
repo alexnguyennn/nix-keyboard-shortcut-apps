@@ -1,14 +1,14 @@
 { stdenv }:
 
 stdenv.mkDerivation {
-  pname = "kmonad-daemon-shim";
+  pname = "karabiner-daemon-shim";
   version = "0.1.0";
   src = ./.;
   buildPhase = ''
-    cc main.c -o kmonad-daemon-shim
+    cc main.c -o karabiner-daemon-shim
   '';
   installPhase = ''
     mkdir -p $out/bin
-    cp kmonad-daemon-shim $out/bin
+    cp karabiner-daemon-shim $out/bin
   '';
 }

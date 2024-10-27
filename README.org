@@ -1,7 +1,7 @@
 #+title: Readme
 
 * Nix-Kmonad
-Nix flake set up to enable KMonad installation
+Nix flake set up to enable KMonad or Kanata installation
 
 To consume on =nix-darwin= inside a flake:
 
@@ -13,7 +13,7 @@ To consume on =nix-darwin= inside a flake:
   description = "flake consuming nix-kmonad"
 
   inputs = {
-      nix-kmonad.url = "github:alexnguyennn/nix-kmonad/ba0806891448fb6a651e88df26309fabcbd7579b";
+      nix-kmonad.url = "github:alexnguyennn/nix-kmonad/master";
   }
 # ... other flake boilerplate
       darwinConfigurations = {
@@ -33,6 +33,7 @@ To consume on =nix-darwin= inside a flake:
    # set flake properties
    alexnguyennn.flake.kmonad = {
     enable = true;
+    loadService = true;
     baseConfig = ''
       (defcfg
         input (iokit-name "Apple Internal Keyboard / Trackpad")
@@ -45,6 +46,13 @@ To consume on =nix-darwin= inside a flake:
     ;; insert your kmonad lisp code here
                '';
     };
+
+   # or use kanata instead / as well
+  alexnguyennn.flake.kanata = {
+    enable = true;
+    loadService = true;
+    configPath = "${homePath}/.config/kanata/config.kbd" # chuck your lisp in this file
+    };
 }
 #+end_src
 
@@ -52,7 +60,10 @@ To consume on =nix-darwin= inside a flake:
 ** Troubleshooting
 - First =nix-darwin rebuild= may fail on =activate= at ~/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager activate~
   - May need to download the pkg manually (see package derivation at ~./pkgs/darwin~)
+    - open the package then try the activate again
   - There is a shim to allow kmonad to be used as a launchd service. It needs exec permissions (module should do this, but add permissions if issues running)
+- Service may fail to run on load due to not having =/Applications/.Karabiner-VirtualHIDDevice-Manager.app/karabiner-daemon-shim= allowed in ~Security and Privacy > Input Monitoring~
+  - use =Cmd-Shift-G= in finder to set path easily
 *** No host part in the URL
 #+begin_src shell
 error: builder for '/nix/store/5plsh526ilg4p90f9px2p5ifkb2g8hg4-Karabiner-DriverKit-VirtualHIDDevice-2.1.0.pkg.drv' failed with exit code 1;
