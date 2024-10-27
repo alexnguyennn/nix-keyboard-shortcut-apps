@@ -1,10 +1,14 @@
 { pkgs, config, lib, ... }:
-let
-  cfg = config.alexnguyennn.flake.kmonad;
-in
-{
+let cfg = config.alexnguyennn.flake.kmonad;
+in {
   options.alexnguyennn.flake.kmonad = {
     enable = lib.mkEnableOption "kmonad";
+    loadService = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description =
+        "Enables launchd service. Disable this to ensure Karabiner-DriverKit-VirtualHIDDevice is installed without autoactivating kmonad";
+    };
     baseConfig = lib.mkOption { type = lib.types.lines; };
     userConfig = lib.mkOption { type = lib.types.lines; };
   };
@@ -27,7 +31,7 @@ in
 
     '');
 
-    launchd.daemons.kmonad-default.serviceConfig = {
+    launchd.daemons.kmonad-default.serviceConfig = lib.mkIf cfg.loadService {
       EnvironmentVariables.PATH =
         "${pkgs.kmonad}/bin:${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-DriverKit-VirtualHIDDeviceClient.app/Contents/MacOS:${config.environment.systemPath}";
       KeepAlive = true;
@@ -42,12 +46,9 @@ in
         ''))
       ];
 
-      # ${cfg.config}
       StandardOutPath = "/Library/Logs/KMonad/default-stdout";
       StandardErrorPath = "/Library/Logs/KMonad/default-stderr";
       RunAtLoad = true;
     };
-
   };
-
 }
