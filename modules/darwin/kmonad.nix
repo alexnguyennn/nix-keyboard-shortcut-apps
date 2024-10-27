@@ -33,18 +33,14 @@ in {
 
     launchd.daemons.kmonad-default.serviceConfig = lib.mkIf cfg.loadService {
       EnvironmentVariables.PATH =
-        "${pkgs.kmonad}/bin:${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-DriverKit-VirtualHIDDeviceClient.app/Contents/MacOS:${config.environment.systemPath}";
+        "${pkgs.kanata}/bin:${pkgs.kanata-tray}/bin:${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-DriverKit-VirtualHIDDeviceClient.app/Contents/MacOS:${config.environment.systemPath}";
       KeepAlive = true;
       Nice = -20;
       ProgramArguments = [
         "/Applications/.Karabiner-VirtualHIDDevice-Manager.app/kmonad-daemon-shim"
-        "--input"
-        ''iokit-name "Apple Internal Keyboard / Trackpad"''
-        (toString (builtins.toFile "kmonad-default.kbd" ''
-          ${cfg.baseConfig}
-          ${cfg.userConfig}
-        ''))
       ];
+
+      Sockets = { Listeners = { KanataTray = "5829"; }; };
 
       StandardOutPath = "/Library/Logs/KMonad/default-stdout";
       StandardErrorPath = "/Library/Logs/KMonad/default-stderr";
