@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
   } else {
     // To give time for kdv-client to start
     sleep(1);
-    r = execvp("kanata-tray", argv);
+    r = execvp("kanata", argv);
   };
   if (r < 0) {
     perror("kmonad-service-shim: execvp");

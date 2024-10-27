@@ -38,9 +38,11 @@ in {
       Nice = -20;
       ProgramArguments = [
         "/Applications/.Karabiner-VirtualHIDDevice-Manager.app/kmonad-daemon-shim"
+        "--port"
+        "5829"
+        "-c"
+        "/Users/alex/.config/kanata/macos.kbd"
       ];
-
-      Sockets = { Listeners = { KanataTray = "5829"; }; };
 
       StandardOutPath = "/Library/Logs/KMonad/default-stdout";
       StandardErrorPath = "/Library/Logs/KMonad/default-stderr";
