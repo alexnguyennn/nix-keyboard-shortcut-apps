@@ -25,7 +25,7 @@ in {
         "Enables launchd service. Disable this to ensure Karabiner-DriverKit-VirtualHIDDevice is installed without autoactivating kanata";
     };
     configPath = lib.mkOption {
-      type = lib.types.string;
+      type = lib.types.str;
       default = true;
       description =
         "holds an absolute path to the config file to be used by kanata";
@@ -50,6 +50,7 @@ in {
 
     '');
 
+    # TODO: remove service itself when disabled by splitting to multiple config blocks
     launchd.daemons.kmonad-default.serviceConfig =
       lib.mkIf (kmonadCfg.loadService && kmonadCfg.enable) {
         EnvironmentVariables.PATH =
