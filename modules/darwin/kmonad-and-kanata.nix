@@ -77,7 +77,11 @@ in {
       lib.mkIf (kanataCfg.loadService && kanataCfg.enable) {
         EnvironmentVariables.PATH =
           "${pkgs.kanata}/bin:${pkgs.kanata-tray}/bin:${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-DriverKit-VirtualHIDDeviceClient.app/Contents/MacOS:${config.environment.systemPath}";
-        KeepAlive = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+          Crashed = true;
+          NetworkState = true;
+        };
         Nice = -20;
         ProgramArguments = [
           "/Applications/.Karabiner-VirtualHIDDevice-Manager.app/karabiner-daemon-shim"
