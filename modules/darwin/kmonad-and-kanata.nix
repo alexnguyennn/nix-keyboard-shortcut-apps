@@ -3,6 +3,7 @@ let
   cfg = config.alexnguyennn.flake;
   kmonadCfg = cfg.kmonad;
   kanataCfg = cfg.kanata;
+  kanataPath = "${pkgs.kanata}/bin/kanata";
 in {
   options.alexnguyennn.flake.kmonad = {
     enable = lib.mkEnableOption "kmonad";
@@ -73,28 +74,17 @@ in {
         RunAtLoad = true;
       };
 
-    launchd.daemons.kanata-default.serviceConfig =
+    launchd.daemons.kanata-direct =
       lib.mkIf (kanataCfg.loadService && kanataCfg.enable) {
-        EnvironmentVariables.PATH =
-          "${pkgs.kanata}/bin:${pkgs.kanata-tray}/bin:${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-DriverKit-VirtualHIDDeviceClient.app/Contents/MacOS:${config.environment.systemPath}";
-        KeepAlive = {
-          SuccessfulExit = false;
-          Crashed = true;
-          NetworkState = true;
+        serviceConfig = {
+          Label = "com.jtroo.kanata";
+          ProgramArguments =
+            [ kanataPath "--cfg" kanataCfg.configPath "--nodelay" ];
+          RunAtLoad = true;
+          KeepAlive = true;
+          StandardErrorPath = "/Library/Logs/kanata/kanata.error.log";
+          StandardOutPath = "/Library/Logs/kanata/kanata.output.log";
         };
-        Nice = -20;
-        ProgramArguments = [
-          "/Applications/.Karabiner-VirtualHIDDevice-Manager.app/karabiner-daemon-shim"
-          "kanata"
-          "--port"
-          "5829"
-          "-c"
-          kanataCfg.configPath
-        ];
-
-        StandardOutPath = "/Library/Logs/kanata/default-stdout";
-        StandardErrorPath = "/Library/Logs/kanata/default-stderr";
-        RunAtLoad = true;
       };
   };
 }
