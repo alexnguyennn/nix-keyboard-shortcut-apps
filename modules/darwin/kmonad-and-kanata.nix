@@ -74,17 +74,26 @@ in {
         RunAtLoad = true;
       };
 
-    launchd.daemons.kanata-direct =
+    launchd.user.agents.kanata-user =
       lib.mkIf (kanataCfg.loadService && kanataCfg.enable) {
+        command = "sudo ${kanataPath} --cfg ${kanataCfg.configPath} --nodelay";
         serviceConfig = {
-          Label = "com.jtroo.kanata";
-          ProgramArguments =
-            [ kanataPath "--cfg" kanataCfg.configPath "--nodelay" ];
+
+          UserName = "alex";
           RunAtLoad = true;
-          KeepAlive = true;
-          StandardErrorPath = "/Library/Logs/kanata/kanata.error.log";
-          StandardOutPath = "/Library/Logs/kanata/kanata.output.log";
+          KeepAlive = {
+            SuccessfulExit = false;
+            Crashed = true;
+          };
+          StandardErrorPath = "/Users/alex/.logs/kanata.err.log";
+          StandardOutPath = "/Users/alex/.logs/kanata.out.log";
+          ProcessType = "Interactive";
+          Nice = -30;
         };
       };
+
+    security.sudo.extraConfig = ''
+      %admin ALL=(root) NOPASSWD: ${kanataPath} --cfg ${kanataCfg.configPath} --nodelay
+    '';
   };
 }
