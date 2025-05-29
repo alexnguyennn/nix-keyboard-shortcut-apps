@@ -2,13 +2,12 @@
 
 stdenv.mkDerivation {
   pname = "Karabiner-DriverKit-VirtualHIDDevice";
-  version = "3.1.0";
+  version = "5.0.0";
   # use /raw/main/dist/* from filetree
   src = pkgs.fetchurl {
-    # full path: "https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/raw/main/dist/Karabiner-DriverKit-VirtualHIDDevice-3.1.0.pkg";
     url =
-      "https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/raw/main/dist/Karabiner-DriverKit-VirtualHIDDevice-3.1.0.pkg";
-    sha256 = "sha256-IAj/60exLcdvFWsSW1TU9EmWiwzB7/tunzVXz+A+H50";
+      "https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/raw/main/dist/Karabiner-DriverKit-VirtualHIDDevice-5.0.0.pkg";
+    sha256 = "sha256-hKi2gmIdtjl/ZaS7RPpkpSjb+7eT0259sbUUbrn5mMc";
   };
 
   buildInputs = [ cpio xar ];
