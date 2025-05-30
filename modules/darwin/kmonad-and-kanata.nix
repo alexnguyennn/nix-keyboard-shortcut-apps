@@ -77,26 +77,43 @@ in {
         RunAtLoad = true;
       };
 
-    launchd.user.agents.kanata-user =
-      lib.mkIf (kanataCfg.loadService && kanataCfg.enable) {
-        command = "sudo ${kanataPath} --cfg ${kanataCfg.configPath} --nodelay";
-        serviceConfig = {
+    launchd.user.agents.kanata-user = let
+      kanataWrapper = pkgs.writeShellScript "kanata-wrapper" ''
+        # Start Karabiner daemon in background
+        echo "started kanata wrapper"
 
-          UserName = "alex";
-          RunAtLoad = true;
-          KeepAlive = {
-            SuccessfulExit = false;
-            Crashed = true;
-          };
-          StandardErrorPath = "/Users/alex/.logs/kanata.err.log";
-          StandardOutPath = "/Users/alex/.logs/kanata.out.log";
-          ProcessType = "Interactive";
-          Nice = -30;
+        exec sudo '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon' &
+
+        # Give daemon time to initialize
+        echo "started daemon"
+
+        sleep 2
+        echo "waited 2s for initialise - running kanata now"
+
+        # Start Kanata (this becomes the main process)
+        exec sudo ${kanataPath} --cfg ${kanataCfg.configPath} --nodelay
+      '';
+
+    in lib.mkIf (kanataCfg.loadService && kanataCfg.enable) {
+      command = "${kanataWrapper}";
+      serviceConfig = {
+
+        UserName = "alex";
+        RunAtLoad = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+          Crashed = true;
         };
+        StandardErrorPath = "/Users/alex/.logs/kanata.err.log";
+        StandardOutPath = "/Users/alex/.logs/kanata.out.log";
+        ProcessType = "Interactive";
+        Nice = -30;
       };
+    };
 
     security.sudo.extraConfig = ''
       %admin ALL=(root) NOPASSWD: ${kanataPath} --cfg ${kanataCfg.configPath} --nodelay
+      %admin ALL=(root) NOPASSWD: /Library/Application\ Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon
     '';
   };
 }
