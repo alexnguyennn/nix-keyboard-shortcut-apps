@@ -1,7 +1,9 @@
 #+title: Readme
 
-* Nix-Kmonad
-Nix flake set up to enable KMonad or Kanata installation
+* nix-keyboard-shortcut-apps
+Nix flake set up that enables packages and system services that enable advanced keyboard shortcut configuration e.g.
+
+KMonad or Kanata installation
 
 To consume on =nix-darwin= inside a flake:
 
@@ -99,8 +101,6 @@ module.deploy_nix_config.null_resource.deploy_nixos_local[0] (local-exec): reque
 - Run force activate manually: =/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager forceActivate=
 - Re-apply changes to nix and observe they complete as usual
 
-** Credits
-This flake is a port of [[https://github.com/mtoohey31/nixexprs/blob/main/nix-darwin/modules/mtoohey/kmonad.nix][mtoohey's]] kmonad nix expressions (with some modifications to make it work on my m1 mac) - thank you for making your config public!
 ** improvements
 - [ ] namespace packages with =${system}= / figure out how pkgs work per operating system (make this work on linux too, not just nix-darwin)
 - [ ] update darwin launchd service to be run as user instead of global daemon via nix-darwin (move to home-manager module instead?)
