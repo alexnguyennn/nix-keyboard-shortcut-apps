@@ -100,6 +100,31 @@ module.deploy_nix_config.null_resource.deploy_nixos_local[0] (local-exec): reque
 - Manually download the extension with =wget= and install via gui
 - Run force activate manually: =/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager forceActivate=
 - Re-apply changes to nix and observe they complete as usual
+*** Kanata
+**** macOS
+***** Upgrading Karabiner-VirtualHIDDevice-Manager
+- activation script will copy in the driver ext if it's not there yet
+- has no way of knowing you're on an old version
+- workaround - disable the drivertkit extension by disabling module to remove, then re-enable
+***** Activating Karabiner-VirtualHIDDevice-Manager
+****** Invalid code signature or missing entitlements
+- sign that the app contents have been broken. this can happen when we extract the app contents of a =.pk= and copy the .app paths later on
+  - signature paths are missed
+- install directly to avoid this
+- can tell this is happening if activating the driver via the nix expression fails but running the install and then activating it manually via path works (but future activate breaks things again)
+***** running from terminal fails
+- Input monitoring permissions are required on macOS  (system preferences -> Privacy and Security -> Input Monitoring) are required for the parent process of =kanata=.
+  - if running via terminal check that the path to the terminal app is added to Input Monitoring permission
+***** running from terminal works but as a system service fails
+- Input monitoring permissions are required on macOS  (system preferences -> Privacy and Security -> Input Monitoring) are required for the parent process of =kanata=.
+  - if running via wrapper script, check that the path to the =bash|zsh|sh=  binary is added to Input Monitoring permission
+***** running gives connect_failed asio.system:2
+- a sign that we're not running an extra background daemon that =v5.0.0= and onwards require running.
+- [[https://github.com/jtroo/kanata/issues/1317#issuecomment-2456506215][issue indicating running daemon]]
+- [[https://github.com/jtroo/kanata/issues/1264][related issue - apparently full install of karabiner elements will also do it]]
+**** Checking keyboard input configured
+- [[https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice#steps][the keyboard picker button is]] keyboard shortcuts -> modifier keys for some reason
+- use this to check if the input set up by Karabiner DriverKit Extension is selected
 
 ** improvements
 - [ ] namespace packages with =${system}= / figure out how pkgs work per operating system (make this work on linux too, not just nix-darwin)
