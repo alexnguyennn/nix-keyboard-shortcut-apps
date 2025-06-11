@@ -14,9 +14,7 @@
     let
       driverKitExtVersion = "5.0.0";
     in {
-      darwinModule = import ./modules/darwin/kmonad-and-kanata.nix {
-        inherit driverKitExtVersion;
-      };
+      darwinModule = { pkgs, config, lib, ... }@args: import ./modules/darwin/kmonad-and-kanata.nix ({ inherit pkgs config lib driverKitExtVersion; } // args);
       overlays.default = nixpkgs.lib.composeManyExtensions [
         inputs.kmonad.overlays.default
         (_: prev:
