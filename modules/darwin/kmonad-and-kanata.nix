@@ -1,4 +1,4 @@
-{ pkgs, config, lib, ... }:
+{ pkgs, config, lib, driverKitExtVersion, ... }:
 let
   cfg = config.alexnguyennn.flake;
   kmonadCfg = cfg.kmonad;
@@ -39,23 +39,49 @@ in {
 
   config = lib.mkMerge [
     (lib.mkIf (kmonadCfg.enable || kanataCfg.enable) {
-      # kmonad setup
-      # follows https://github.com/mtoohey31/nixexprs/blob/main/nix-darwin/modules/mtoohey/kmonad.nix
+      # # roughly: if you don't have the paths, we haven't been activated
+      # if we are activating, make sure the service is not also getting started if it doesn't have input monitoring permissions?
+      # if we are activating
+      # can we check input monitoring permissions from cli? no
       system.activationScripts.applications.text = pkgs.lib.mkForce (''
         DEST_PATH=${karabinerDriverKitExtDestPath}
-        if [ ! -d "$DEST_PATH" ]; then
-              echo "Installing Karabiner DriverKit VirtualHIDDevice..."
-              /usr/sbin/installer -pkg ${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Karabiner-DriverKit-VirtualHIDDevice.pkg -target /
+        echo "Checking if Karabiner DriverKit VirtualHIDDevice needs to be installed..."
+        echo "Checking destination path: $DEST_PATH"
+        echo "Expected version: ${driverKitExtVersion}"
+        if [ -d "$DEST_PATH" ]; then
+            CURRENT_VERSION=$(defaults read "$DEST_PATH/Contents/Info" CFBundleVersion | tr -d '\n')
+        else
+            CURRENT_VERSION=null
         fi
-        echo copying shim...
-        cp --no-preserve mode ${pkgs.karabiner-daemon-shim}/bin/karabiner-daemon-shim $DEST_PATH/karabiner-daemon-shim
-        # make service shim usable
-        chmod u=rwx,og= $DEST_PATH/karabiner-daemon-shim
-        chown root $DEST_PATH/karabiner-daemon-shim
-        echo activating dext...
-        $DEST_PATH/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager activate
-        printf '\x1b[0;31mPlease grant Input Monitoring permissions to /Applications/.Karabiner-VirtualHIDDevice-Manager.app/karabiner-daemon-shim in System Preferences > Security & Privacy > Privacy > Input Monitoring\x1b[0m\n'
-        printf '\x1b[0;31mPlease grant Input Monitoring permissions to ${pkgs.bash} in System Preferences > Security & Privacy > Privacy > Input Monitoring\x1b[0m\n'
+        if [ ! -d "$DEST_PATH" ] || [ "$CURRENT_VERSION" != "${driverKitExtVersion}" ]; then
+            echo "Current version found: $CURRENT_VERSION"
+            echo "Destination path does not exist or version mismatch."
+            echo "Installing Karabiner DriverKit VirtualHIDDevice..."
+            /usr/sbin/installer -pkg ${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Karabiner-DriverKit-VirtualHIDDevice-${driverKitExtVersion}.pkg -target /
+            echo copying shim...
+            MACOS_PATH="$DEST_PATH/Contents/MacOS"
+            cp --no-preserve mode ${pkgs.karabiner-daemon-shim}/bin/karabiner-daemon-shim $MACOS_PATH/karabiner-daemon-shim
+            # make service shim usable
+            chmod u=rwx,og= $MACOS_PATH/karabiner-daemon-shim
+            chown root $MACOS_PATH/karabiner-daemon-shim
+            echo "Re-signing app bundle after adding shim..."
+            codesign --remove-signature "$DEST_PATH"
+            codesign --force --deep --sign - "$DEST_PATH"
+            echo "Removing quarantine attributes..."
+            xattr -dr com.apple.quarantine "$DEST_PATH"
+            echo activating dext...
+            $MACOS_PATH/Karabiner-VirtualHIDDevice-Manager activate
+            printf '\x1b[0;31mPlease grant Input Monitoring permissions to $MACOS_PATH/karabiner-daemon-shim in System Preferences > Security & Privacy > Privacy > Input Monitoring\x1b[0m\n'
+            printf '\x1b[0;31mPlease grant Input Monitoring permissions to ${pkgs.bash} in System Preferences > Security & Privacy > Privacy > Input Monitoring\x1b[0m\n'
+            if launchctl print "gui/$(id -u)/org.nixos.kanata-user" > /dev/null; then
+              USER=$(stat -f %u /dev/console)
+              printf '\x1b[0;31mFound running kanata user agent. Unloading in case input monitoring permissions are missing on latest activation - will need to manually reload with..\x1b[0m\n'
+              printf '\x1b[0;31mlaunchctl bootstrap gui/%s ~/Library/LaunchAgents/org.nixos.kanata-user.plist\x1b[0m\n' "$USER"
+              # Use sudo to run launchctl as the user who owns the GUI session
+              sudo -u "#$USER" launchctl bootout "gui/$USER/org.nixos.kanata-user"
+            fi
+        fi
+        echo "Completed Karabiner DriverKit VirtualHIDDevice activation"
       '');
 
       # TODO: remove service itself when disabled by splitting to multiple config blocks
@@ -66,7 +92,7 @@ in {
           KeepAlive = true;
           Nice = -20;
           ProgramArguments = [
-            "/Applications/.Karabiner-VirtualHIDDevice-Manager.app/karabiner-daemon-shim"
+            "${karabinerDriverKitExtDestPath}/Contents/MacOS/karabiner-daemon-shim"
             "kmonad"
             "--input"
             ''iokit-name "Apple Internal Keyboard / Trackpad"''
