@@ -1,24 +1,18 @@
-{ Karabiner-DriverKit-VirtualHIDDevice-src, pkgs, cpio, stdenv, xar }:
+{ Karabiner-DriverKit-VirtualHIDDevice-src, pkgs, stdenv, driverKitExtVersion }:
 
 stdenv.mkDerivation {
   pname = "Karabiner-DriverKit-VirtualHIDDevice";
-  version = "5.0.0";
+  version = driverKitExtVersion;
   # use /raw/main/dist/* from filetree
   src = pkgs.fetchurl {
     url =
-      "https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/raw/main/dist/Karabiner-DriverKit-VirtualHIDDevice-5.0.0.pkg";
+      "https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/raw/main/dist/Karabiner-DriverKit-VirtualHIDDevice-${driverKitExtVersion}.pkg";
     sha256 = "sha256-hKi2gmIdtjl/ZaS7RPpkpSjb+7eT0259sbUUbrn5mMc";
   };
 
-  buildInputs = [ cpio xar ];
-  unpackPhase = ''
-    xar -xf $src
-    mv Payload Payload.gz
-    gzip -d Payload.gz
-    mkdir extracted && cd extracted && cpio -i < ../Payload
-  '';
-  dontBuild = true;
+  buildInputs = [ ];
+  dontUnpack = true;
   installPhase = ''
-    cp -r . $out
+    install -Dm644 $src $out/Karabiner-DriverKit-VirtualHIDDevice-${driverKitExtVersion}.pkg
   '';
 }
