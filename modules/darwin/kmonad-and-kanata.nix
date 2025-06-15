@@ -44,33 +44,39 @@ in {
       # if we are activating
       # can we check input monitoring permissions from cli? no
       system.activationScripts.applications.text = pkgs.lib.mkForce (''
-        DEST_PATH=${karabinerDriverKitExtDestPath}
+        DEST_PATH="${karabinerDriverKitExtDestPath}"
         echo "Checking if Karabiner DriverKit VirtualHIDDevice needs to be installed..."
         echo "Checking destination path: $DEST_PATH"
         echo "Expected version: ${driverKitExtVersion}"
         if [ -d "$DEST_PATH" ]; then
+            # purposely keep stderr to see if issues fetching version occur
             CURRENT_VERSION=$(defaults read "$DEST_PATH/Contents/Info" CFBundleVersion | tr -d '\n')
         else
-            CURRENT_VERSION=null
+            CURRENT_VERSION="null"
         fi
         if [ ! -d "$DEST_PATH" ] || [ "$CURRENT_VERSION" != "${driverKitExtVersion}" ]; then
             echo "Current version found: $CURRENT_VERSION"
             echo "Destination path does not exist or version mismatch."
             echo "Installing Karabiner DriverKit VirtualHIDDevice..."
-            /usr/sbin/installer -pkg ${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Karabiner-DriverKit-VirtualHIDDevice-${driverKitExtVersion}.pkg -target /
+            /usr/sbin/installer -pkg "${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Karabiner-DriverKit-VirtualHIDDevice-${driverKitExtVersion}.pkg" -target /
             MACOS_PATH="$DEST_PATH/Contents/MacOS"
             echo "Removing quarantine attributes..."
             xattr -dr com.apple.quarantine "$DEST_PATH"
             echo activating dext...
             $MACOS_PATH/Karabiner-VirtualHIDDevice-Manager activate
-            printf '\x1b[0;31mPlease grant Input Monitoring permissions to ${pkgs.bash} in System Preferences > Security & Privacy > Privacy > Input Monitoring\x1b[0m\n'
-            if launchctl print "gui/$(id -u)/org.nixos.kanata-user" > /dev/null; then
-              USER=$(stat -f %u /dev/console)
+            printf '\x1b[0;31mPlease grant Input Monitoring permissions to ${pkgs.bash}/bin in System Preferences > Security & Privacy > Privacy > Input Monitoring\x1b[0m\n'
+            # use absolute path to force use of native macos stat
+            USER="$(/usr/bin/stat -f "%u" /dev/console)"
+            # should not already exist if service is created by this module (nix module cleans itself on uninstall)
+            if launchctl print "gui/$USER/org.nixos.kanata-user" >/dev/null; then
               printf '\x1b[0;31mFound running kanata user agent. Unloading in case input monitoring permissions are missing on latest activation - will need to manually reload with..\x1b[0m\n'
-              printf '\x1b[0;31mlaunchctl bootstrap gui/%s ~/Library/LaunchAgents/org.nixos.kanata-user.plist\x1b[0m\n' "$USER"
+              printf '\x1b[0;31mlaunchctl bootstrap "gui/%s" "~/Library/LaunchAgents/org.nixos.kanata-user.plist"\x1b[0m\n' "$USER"
               # Use sudo to run launchctl as the user who owns the GUI session
-              sudo -u "#$USER" launchctl bootout "gui/$USER/org.nixos.kanata-user"
+              # best effort to unload the service if it's running
+              sudo -u "#$USER" launchctl bootout "gui/$USER/org.nixos.kanata-user" 2>/dev/null || true
+              printf '\x1b[0;31mAttempted to unload user agent with launchctl bootout...\x1b[0m\n'
             fi
+            echo "Completed check for launchd agent for 'gui/$USER/org.nixos.kanata-user'"
         fi
         echo "Completed Karabiner DriverKit VirtualHIDDevice activation"
       '');
