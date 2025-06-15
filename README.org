@@ -63,9 +63,12 @@ To consume on =nix-darwin= inside a flake:
 - First =nix-darwin rebuild= may fail on =activate= at ~/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager activate~
   - May need to download the pkg manually (see package derivation at ~./pkgs/darwin~)
     - open the package then try the activate again
-  - There is a shim to allow kmonad to be used as a launchd service. It needs exec permissions (module should do this, but add permissions if issues running)
 - Service may fail to run on load due to not having =/Applications/.Karabiner-VirtualHIDDevice-Manager.app/karabiner-daemon-shim= allowed in ~Security and Privacy > Input Monitoring~
   - use =Cmd-Shift-G= in finder to set path easily
+- karabiner-daemon-shim was removed as kmonad is not used as a launchd service anymore (have migrated to kanata)
+  - also adding it to the app bundle was  causing issues with the app bundle being signed
+    - [[*Invalid code signature or missing entitlements][Invalid code signature or missing entitlements]]
+      - the driverext expects the app itself to unchanged
 *** No host part in the URL
 #+begin_src shell
 error: builder for '/nix/store/5plsh526ilg4p90f9px2p5ifkb2g8hg4-Karabiner-DriverKit-VirtualHIDDevice-2.1.0.pkg.drv' failed with exit code 1;
@@ -108,7 +111,10 @@ module.deploy_nix_config.null_resource.deploy_nixos_local[0] (local-exec): reque
 - workaround - disable the drivertkit extension by disabling module to remove, then re-enable
 ***** Activating Karabiner-VirtualHIDDevice-Manager
 ****** Invalid code signature or missing entitlements
-- sign that the app contents have been broken. this can happen when we extract the app contents of a =.pk= and copy the .app paths later on
+:PROPERTIES:
+:ID:       cb4119ca-6fb1-41cb-adbf-cfb4d33dc896
+:END:
+- sign that the app contents have been broken. this can happen when we extract the app contents of a =.pkg= and copy the .app paths later on
   - signature paths are missed
 - install directly to avoid this
 - can tell this is happening if activating the driver via the nix expression fails but running the install and then activating it manually via path works (but future activate breaks things again)

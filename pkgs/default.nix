@@ -9,5 +9,4 @@ in { } // pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin {
         + "/../c_src/mac/Karabiner-DriverKit-VirtualHIDDevice";
       inherit driverKitExtVersion;
     };
-  karabiner-daemon-shim = callPackage ./darwin/karabiner-daemon-shim { };
 }

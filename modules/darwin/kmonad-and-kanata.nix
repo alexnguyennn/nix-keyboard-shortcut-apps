@@ -58,20 +58,11 @@ in {
             echo "Destination path does not exist or version mismatch."
             echo "Installing Karabiner DriverKit VirtualHIDDevice..."
             /usr/sbin/installer -pkg ${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Karabiner-DriverKit-VirtualHIDDevice-${driverKitExtVersion}.pkg -target /
-            echo copying shim...
             MACOS_PATH="$DEST_PATH/Contents/MacOS"
-            cp --no-preserve mode ${pkgs.karabiner-daemon-shim}/bin/karabiner-daemon-shim $MACOS_PATH/karabiner-daemon-shim
-            # make service shim usable
-            chmod u=rwx,og= $MACOS_PATH/karabiner-daemon-shim
-            chown root $MACOS_PATH/karabiner-daemon-shim
-            echo "Re-signing app bundle after adding shim..."
-            codesign --remove-signature "$DEST_PATH"
-            codesign --force --deep --sign - "$DEST_PATH"
             echo "Removing quarantine attributes..."
             xattr -dr com.apple.quarantine "$DEST_PATH"
             echo activating dext...
             $MACOS_PATH/Karabiner-VirtualHIDDevice-Manager activate
-            printf '\x1b[0;31mPlease grant Input Monitoring permissions to $MACOS_PATH/karabiner-daemon-shim in System Preferences > Security & Privacy > Privacy > Input Monitoring\x1b[0m\n'
             printf '\x1b[0;31mPlease grant Input Monitoring permissions to ${pkgs.bash} in System Preferences > Security & Privacy > Privacy > Input Monitoring\x1b[0m\n'
             if launchctl print "gui/$(id -u)/org.nixos.kanata-user" > /dev/null; then
               USER=$(stat -f %u /dev/console)
@@ -83,29 +74,6 @@ in {
         fi
         echo "Completed Karabiner DriverKit VirtualHIDDevice activation"
       '');
-
-      # TODO: remove service itself when disabled by splitting to multiple config blocks
-      launchd.daemons.kmonad-default.serviceConfig =
-        lib.mkIf (kmonadCfg.loadService && kmonadCfg.enable) {
-          EnvironmentVariables.PATH =
-            "${pkgs.kmonad}/bin:${pkgs.Karabiner-DriverKit-VirtualHIDDevice}/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-DriverKit-VirtualHIDDeviceClient.app/Contents/MacOS:${config.environment.systemPath}";
-          KeepAlive = true;
-          Nice = -20;
-          ProgramArguments = [
-            "${karabinerDriverKitExtDestPath}/Contents/MacOS/karabiner-daemon-shim"
-            "kmonad"
-            "--input"
-            ''iokit-name "Apple Internal Keyboard / Trackpad"''
-            (toString (builtins.toFile "kmonad-default.kbd" ''
-              ${kmonadCfg.baseConfig}
-              ${kmonadCfg.userConfig}
-            ''))
-          ];
-
-          StandardOutPath = "/Library/Logs/kanata/default-stdout";
-          StandardErrorPath = "/Library/Logs/kanata/default-stderr";
-          RunAtLoad = true;
-        };
 
       launchd.user.agents.kanata-user = let
         kanataWrapper = pkgs.writeShellScript "kanata-wrapper" ''
