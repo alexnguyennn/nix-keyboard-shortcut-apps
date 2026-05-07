@@ -7,7 +7,7 @@ stdenv.mkDerivation {
   src = pkgs.fetchurl {
     url =
       "https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/raw/main/dist/Karabiner-DriverKit-VirtualHIDDevice-${driverKitExtVersion}.pkg";
-    sha256 = "sha256-hKi2gmIdtjl/ZaS7RPpkpSjb+7eT0259sbUUbrn5mMc";
+    sha256 = "sha256-noxGI58HSBYSQeQkRIV5ASJOXIL1tYoXMd9McL8HNqg=";
   };
 
   buildInputs = [ ];

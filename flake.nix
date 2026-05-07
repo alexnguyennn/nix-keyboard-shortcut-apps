@@ -12,7 +12,7 @@
 
   outputs = { self, nixpkgs, ... }@inputs:
     let
-      driverKitExtVersion = "5.0.0";
+      driverKitExtVersion = "6.2.0";
     in {
       darwinModule = { pkgs, config, lib, ... }@args: import ./modules/darwin/kmonad-and-kanata.nix ({ inherit pkgs config lib driverKitExtVersion; } // args);
       overlays.default = nixpkgs.lib.composeManyExtensions [
