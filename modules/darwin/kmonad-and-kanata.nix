@@ -95,7 +95,8 @@ in {
           echo "waited 2s for initialise - running kanata now"
 
           # Start Kanata (this becomes the main process)
-          exec sudo ${kanataPath} --cfg ${kanataCfg.configPath} --nodelay
+          # https://github.com/jtroo/kanata/issues/2109
+          exec sudo ${kanataPath} --cfg ${kanataCfg.configPath} --nodelay | grep -v "virtual_hid_keyboard_ready"
         '';
 
       in lib.mkIf (kanataCfg.loadService && kanataCfg.enable) {
